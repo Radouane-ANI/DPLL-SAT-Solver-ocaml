@@ -51,8 +51,11 @@ let coloriage = [
    applique la simplification de l'ensemble des clauses en mettant
    le littéral l à vrai *)
 let simplifie l clauses =
-  (* à compléter *)
-  []
+  filter_map
+    (fun li ->
+      if mem l li then None
+      else Some (filter_map (fun a -> if a = -l then None else Some a) li))
+    clauses
 
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
@@ -82,23 +85,45 @@ let rec solveur_split clauses interpretation =
       ce littéral ;
     - sinon, lève une exception `Failure "pas de littéral pur"' *)
 let pur clauses =
-  (* à compléter *)
-  0
+  let literals = flatten clauses in
+  let is_pure l = not (mem (-l) literals) in
+  match find_opt is_pure literals with
+  | Some l -> l
+  | None -> raise (Failure "pas de littéral pur")
 
 (* unitaire : int list list -> int
     - si `clauses' contient au moins une clause unitaire, retourne
       le littéral de cette clause unitaire ;
     - sinon, lève une exception `Not_found' *)
-let unitaire clauses =
-  (* à compléter *)
-  0
+let rec unitaire clauses =
+  match clauses with
+  | [] -> raise Not_found
+  | hd :: tl -> ( match hd with [ a ] -> a | _ -> unitaire tl)
 
 (* solveur_dpll_rec : int list list -> int list -> int list option *)
 let rec solveur_dpll_rec clauses interpretation =
-  (* à compléter *)
-  None
-
-
+  (* l'ensemble vide de clauses est satisfiable *)
+  if clauses = [] then Some interpretation
+  else if (* la clause vide n'est jamais satisfiable *)
+          mem [] clauses then None
+  else
+    (* branchement *)
+    try
+      let unit = unitaire clauses in
+      solveur_dpll_rec (simplifie unit clauses) (unit :: interpretation)
+    with Not_found -> (
+      try
+        let p = pur clauses in
+        solveur_dpll_rec (simplifie p clauses) (p :: interpretation)
+      with Failure msg -> (
+        let l = hd (hd clauses) in
+        let branche =
+          solveur_dpll_rec (simplifie l clauses) (l :: interpretation)
+        in
+        match branche with
+        | None ->
+            solveur_dpll_rec (simplifie (-l) clauses) (-l :: interpretation)
+        | _ -> branche))
 (* tests *)
 (* ----------------------------------------------------------- *)
 (* let () = print_modele (solveur_dpll_rec systeme []) *)
