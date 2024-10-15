@@ -50,9 +50,29 @@ let coloriage = [
 (* simplifie : int -> int list list -> int list list 
    applique la simplification de l'ensemble des clauses en mettant
    le littéral l à vrai *)
+
 let simplifie l clauses =
-  (* à compléter *)
-  []
+  let simplifie_clause clause =
+  if List.mem l clause then
+    None  (* Clause satisfaite, on l'élimine *)
+  else if List.mem (-l) clause then
+    Some (List.filter (fun x -> x <> -l) clause)  (* On retire -l *)
+  else
+    Some clause  (* Clause inchangée *)
+in
+List.rev (filter_map simplifie_clause clauses)
+;;
+
+let () =
+  (* Test avec le littéral 2 dans exemple_7_8 *)
+  print_string "Test avec l = 2:\n";
+  let result = simplifie 2 exemple_7_8 in
+  if result = [] then
+    print_modele None  (* Aucune clause satisfaisante *)
+  else
+    print_modele (Some (List.concat result));  (* Affiche toutes les clauses sous forme de liste *)
+  ;;
+  
 
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
@@ -104,6 +124,7 @@ let rec solveur_dpll_rec clauses interpretation =
 (* let () = print_modele (solveur_dpll_rec systeme []) *)
 (* let () = print_modele (solveur_dpll_rec coloriage []) *)
 
-let () =
+(* let () =
   let clauses = Dimacs.parse Sys.argv.(1) in
   print_modele (solveur_dpll_rec clauses [])
+;; *)
