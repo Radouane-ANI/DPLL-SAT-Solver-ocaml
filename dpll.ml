@@ -52,11 +52,9 @@ let coloriage = [
    le littéral l à vrai *)
 let simplifie l clauses =
   filter_map
-    (fun li ->
-      if mem l li then None
-      else Some (filter_map (fun a -> if a = -l then None else Some a) li))
+    (fun li -> if mem l li then None else Some (filter (fun x -> x <> -l) li))
     clauses
-
+  
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
 (* cette fonction ne doit pas être modifiée, sauf si vous changez 
@@ -86,10 +84,16 @@ let rec solveur_split clauses interpretation =
     - sinon, lève une exception `Failure "pas de littéral pur"' *)
 let pur clauses =
   let literals = flatten clauses in
-  let is_pure l = not (mem (-l) literals) in
-  match find_opt is_pure literals with
-  | Some l -> l
-  | None -> raise (Failure "pas de littéral pur")
+  let sort_list = sort (fun i j -> abs i - abs j) literals in
+  let rec pur_aux l is_pure list =
+    match list with
+    | [] -> if is_pure then l else raise (Failure "pas de littéral pur")
+    | hd :: tl ->
+      if is_pure then if hd = -l then pur_aux hd false tl else pur_aux l true tl
+      else if hd <> -l && hd <> l then pur_aux hd true tl
+      else pur_aux hd false tl
+in
+pur_aux 0 false sort_list
 
 (* unitaire : int list list -> int
     - si `clauses' contient au moins une clause unitaire, retourne
