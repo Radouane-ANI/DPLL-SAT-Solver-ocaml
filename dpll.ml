@@ -51,10 +51,19 @@ let coloriage = [
    applique la simplification de l'ensemble des clauses en mettant
    le littéral l à vrai *)
 let simplifie l clauses =
-  filter_map
-    (fun li -> if mem l li then None else Some (filter (fun x -> x <> -l) li))
-    clauses
-  
+  let rec simpl_clause clause =
+    match clause with
+    | [] -> Some clause
+    | h :: t -> (
+        if h = l then None
+        else if h = -l then simpl_clause t
+        else
+          match simpl_clause t with
+          | None -> None
+          | Some reste -> Some (h :: reste))
+  in
+  filter_map simpl_clause clauses
+
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
 (* cette fonction ne doit pas être modifiée, sauf si vous changez 
