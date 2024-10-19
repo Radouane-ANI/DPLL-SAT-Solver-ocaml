@@ -50,18 +50,15 @@ let coloriage = [
 (* simplifie : int -> int list list -> int list list 
    applique la simplification de l'ensemble des clauses en mettant
    le littéral l à vrai *)
-  let simplifie l clauses =
-    let simplifie_clause clause =
-      let rec aux acc fin_clause = match fin_clause with
-        | [] -> Some acc
-        | h::tl -> if h = l then None else if h = -l then aux acc tl else aux (h::acc) tl
-      in aux [] clause
-    in
-    fold_right (fun clause acc ->
-      match simplifie_clause clause with
-      | None -> acc
-      | Some cl -> cl :: acc) clauses []
-      
+let simplifie l clauses =
+  let rec aux acc fin_clause =
+    match fin_clause with
+    | [] -> Some acc
+    | h :: tl ->
+        if h = l then None else if h = -l then aux acc tl else aux (h :: acc) tl
+  in
+  rev (filter_map (aux []) clauses)
+
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
 (* cette fonction ne doit pas être modifiée, sauf si vous changez 
