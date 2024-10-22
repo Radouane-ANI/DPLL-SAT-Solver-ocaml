@@ -10,9 +10,9 @@ Date limite: le vendredi 25 octobre 2024 à 19:00
 
 Identité
 --------
-Nombre de binôme: **à remplir**
-Nom, prénom 1: **à remplir**
-Nom, prénom 2: **à remplir**
+Nombre de binôme: 34
+Nom, prénom 1: Aouini Radouane 
+Nom, prénom 2: Chioukh Sami
 
 
 Questions sur votre code
@@ -21,7 +21,7 @@ Questions sur votre code
    et que ensuite `./dpll sudoku-4x4.cnf` donne la réponse attendue (voir
    fichier README) ?
 
-**à remplir**
+Oui, on a testé que make dpll s'exécute sans erreurs ou warnings. On a également exécuté ./dpll sudoku-4x4.cnf, et cela nous a donné la réponse attendue conformément aux indications du fichier README.
 
 ---
 
@@ -32,7 +32,7 @@ Questions sur votre code
    - Si non, expliquez en quelques phrases en français comment
      fonctionne votre implémentation de `simplifie`.
 
-**à remplir**
+Oui, on autilisé la fonction filter_map dans mon implémentation de simplifie. On l'a utilisée pour appliquer la simplification en filtrant et en modifiant les clauses. La fonction aux vérifie si un littéral apparaît dans une clause : si c'est le littéral que l'on souhaite simplifier, la clause est supprimée (None), si c'est l'opposé, ce littéral est enlevé de la clause, et sinon, il est ajouté à la clause simplifiée. filter_map applique cette logique à l'ensemble des clauses et renvoie les clauses modifiées.
 
 ---
 
@@ -45,7 +45,11 @@ Questions sur votre code
    comment ces fonctions auxiliaires sont utilisées dans votre
    implémentation de la fonction `unitaire`.
 
-**à remplir**
+Dans notre implémentation de la fonction unitaire, on a pas utilisé de fonctions auxiliaires externes comme celles de la bibliothèque OCaml. La fonction utilise uniquement une structure récursive pour parcourir la liste des clauses.
+
+La logique repose sur une correspondance de motifs pour vérifier si une clause est unitaire. Pour chaque clause, on examine la première clause (hd) de la liste clauses. Si cette clause contient un seul élément, c'est-à-dire qu'elle correspond au motif [a], je renvoie ce littéral a. Si la clause n'est pas unitaire, on appelle récursivement la fonction unitaire sur le reste des clauses (tl).
+
+Cette approche permet d'arrêter la recherche dès qu'une clause unitaire est trouvée, rendant ainsi la fonction efficace. Il serait cependant possible d'envisager une fonction auxiliaire pour améliorer la lisibilité ou gérer des cas spécifiques, mais dans ce contexte, la fonction fonctionne correctement sans cela.
 
 ---
 
@@ -54,7 +58,17 @@ Questions sur votre code
    quelques phrases en français comment ces fonctions auxiliaires sont
    utilisées dans votre implémentation de la fonction `pur`.
 
-**à remplir**
+Dans notre implémentation de la fonction pur, on a utilisé la bibliothèque Hashtbl d'OCaml comme fonction auxiliaire pour gérer une table de hachage, ce qui nous permet de stocker et de compter les littéraux de manière efficace.
+
+Hashtbl.create : on utilise cette fonction pour créer une table de hachage vide. Cela permet de stocker les littéraux avec leur valeur absolue comme clé, ce qui facilite la gestion des littéraux opposés (comme x et ¬x).
+
+Hashtbl.find_opt : Cette fonction est utilisée pour vérifier si un littéral (ou sa valeur absolue) existe déjà dans la table. Si le littéral n'est pas présent, on l'ajoute avec un compteur initialisé à 1. Cela me permet de détecter si un littéral a déjà été enregistré et de mettre à jour son compteur en conséquence.
+
+Hashtbl.add et Hashtbl.replace : On utilise Hashtbl.add pour ajouter un nouveau littéral à la table et Hashtbl.replace pour mettre à jour les littéraux existants. Si on trouve un littéral opposé, on marque celui-ci comme impur en remplaçant la valeur dans la table avec -1.
+
+Hashtbl.fold : Cette fonction est utilisée dans la fonction auxiliaire find_pure pour parcourir tous les éléments de la table de hachage. Elle permet de vérifier les compteurs de chaque littéral et de renvoyer le premier littéral pur trouvé, c'est-à-dire celui qui a un compteur positif.
+
+En utilisant ces fonctions auxiliaires de la bibliothèque Hashtbl, notre implémentation de pur est efficace pour détecter les littéraux purs dans un ensemble de clauses. La gestion des opposés via la valeur absolue permet d'optimiser la recherche et le stockage des littéraux, rendant l'algorithme à la fois rapide et simple à comprendre.
 
 ---
 
@@ -62,7 +76,22 @@ Questions sur votre code
    `solveur_split` et `solveur_dpll_rec` ont un comportement
    différent, et expliquez les différences entre ces deux fonctions.
 
-**à remplir**
+Prenons la formule suivante :
+
+(1 ∨ 2) ∧ (¬1 ∨ 3) ∧ (¬2)
+
+Avec solveur_split :
+
+    Cette fonction choisit un littéral (disons 1), applique la simplification, et continue à chercher une solution. Si le choix de 1 conduit à une impasse, elle essaie -1.
+    Par exemple, si elle choisit 1, les clauses simplifiées pourraient être [[2]; [3]], et elle poursuit avec cette branche jusqu'à ce qu'une des branches aboutisse à une solution ou à une impasse.
+
+Avec solveur_dpll_rec :
+
+    Cette fonction recherche d'abord des littéraux unitaires. Dans cet exemple, après simplification initiale, elle pourrait trouver que la clause [-2] est une clause unitaire, ce qui signifie qu'elle doit être satisfaite par -2.
+    Elle appliquerait alors -2 comme interprétation et simplifierait les clauses en conséquence, ce qui pourrait potentiellement conduire à une résolution différente.
+
+    Pour conclure solveur_split choisit des littéraux de manière directe, tandis que solveur_dpll_rec exploite d'abord les littéraux unitaires, ce qui lui permet de simplifier les clauses avant de procéder à des choix de littéraux. 
+    Cette différence dans la stratégie de recherche peut amener solveur_dpll_rec à explorer différents chemins dans l'espace de recherche, potentiellement plus efficaces, en tirant parti des simplifications obtenues par les clauses unitaires.
 
 ---
 
