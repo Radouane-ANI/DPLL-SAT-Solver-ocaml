@@ -86,7 +86,7 @@ let rec solveur_split clauses interpretation =
     - si `clauses' contient au moins un littéral pur, retourne
       ce littéral ;
     - sinon, lève une exception `Failure "pas de littéral pur"' *)
-let pur clauses =
+(* let pur clauses =
   let literals = flatten clauses in
   let sort_list = sort (fun i j -> abs i - abs j) literals in
   let rec pur_aux l is_pure list =
@@ -97,7 +97,31 @@ let pur clauses =
       else if hd <> -l && hd <> l then pur_aux hd true tl
       else pur_aux hd false tl
 in
-pur_aux 0 false sort_list
+pur_aux 0 false sort_list *)
+
+let pur clauses =
+  let table = Hashtbl.create 128 in
+  (* Remplir la table avec les littéraux *)
+  let add_literal lit =
+    let abs_lit = abs lit in (* on prend la valeur absolue du littéral pour identifier les opposés (x et ¬x ont la même clé dans la table)*)
+    match Hashtbl.find_opt table abs_lit with
+    | None -> Hashtbl.add table abs_lit (lit, 1)
+    | Some (existing_lit, count) ->
+        (* Si le littéral opposé est déjà là, on le marque comme impur *)
+        if existing_lit = -lit then Hashtbl.replace table abs_lit (existing_lit, -1)(* -1 si on a trouver le litteral opposer donc marqué comme impur *)
+        else Hashtbl.replace table abs_lit (existing_lit, count + 1)
+  in
+  List.iter (List.iter add_literal) clauses;
+
+  (* Rechercher un littéral pur dans la table *)
+  let rec find_pure tbl =
+    Hashtbl.fold (fun _ (lit, count) acc ->
+      if count > 0 then Some lit else acc) tbl None
+  in
+  match find_pure table with
+  | Some pure_lit -> pure_lit
+  | None -> raise (Failure "pas de littéral pur")
+
 
 (* unitaire : int list list -> int
     - si `clauses' contient au moins une clause unitaire, retourne
