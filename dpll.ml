@@ -86,6 +86,15 @@ let rec solveur_split clauses interpretation =
     - si `clauses' contient au moins un littéral pur, retourne
       ce littéral ;
     - sinon, lève une exception `Failure "pas de littéral pur"' *)
+let pur clauses =
+  let table = Hashtbl.create 100 in
+    let init = List.iter (fun clause -> iter(fun l -> Hashtbl.replace table l true ) clause) clauses
+    in init ;
+    match Hashtbl.fold (fun l a acc -> if acc = 0 then if Hashtbl.mem table (-l) then acc else l
+    else acc) table 0 with 
+      | 0 -> raise(Failure "pas de littéral pur")
+      | l -> l
+
 (* let pur clauses =
   let literals = flatten clauses in
   let sort_list = sort (fun i j -> abs i - abs j) literals in
@@ -99,7 +108,7 @@ let rec solveur_split clauses interpretation =
 in
 pur_aux 0 false sort_list *)
 
-let pur clauses =
+(* let pur clauses =
   let table = Hashtbl.create 128 in
   (* Remplir la table avec les littéraux *)
   let add_literal lit =
@@ -120,7 +129,7 @@ let pur clauses =
   in
   match find_pure table with
   | Some pure_lit -> pure_lit
-  | None -> raise (Failure "pas de littéral pur")
+  | None -> raise (Failure "pas de littéral pur") *)
 
 
 (* unitaire : int list list -> int
