@@ -132,7 +132,7 @@ let rec unitaire clauses =
   | [] -> raise Not_found
   | hd :: tl -> ( match hd with [ a ] -> a | _ -> unitaire tl)
 
-(* solveur_dpll_rec : int list list -> int list -> int list option *)
+(* solveur_dpll_rec : int list list -> int list -> int list option
 let rec solveur_dpll_rec clauses interpretation =
   (* l'ensemble vide de clauses est satisfiable *)
   if clauses = [] then Some interpretation
@@ -155,7 +155,45 @@ let rec solveur_dpll_rec clauses interpretation =
         match branche with
         | None ->
             solveur_dpll_rec (simplifie (-l) clauses) (-l :: interpretation)
-        | _ -> branche))
+        | _ -> branche)) *)
+
+(* VERSION PLUS OPTIMISER DE solveur_dpll_rec*)
+
+let unitaire_opt clauses =
+  try Some (unitaire clauses)
+  with Not_found -> None
+
+let pur_opt clauses =
+  try Some (pur clauses)
+  with Failure _ -> None
+
+        (* solveur_dpll_rec : int list list -> int list -> int list option *)
+let rec solveur_dpll_rec clauses interpretation =
+  (* l'ensemble vide de clauses est satisfiable *)
+  if clauses = [] then Some interpretation
+  else if (* la clause vide n'est jamais satisfiable *)
+          List.mem [] clauses then None
+  else
+    (* branchement *)
+    match unitaire_opt clauses with
+    | Some unit -> 
+        solveur_dpll_rec (simplifie unit clauses) (unit :: interpretation)
+    | None -> (
+        match pur_opt clauses with
+        | Some p ->
+            solveur_dpll_rec (simplifie p clauses) (p :: interpretation)
+        | None -> (
+            let l = List.hd (List.hd clauses) in
+            let branche =
+              solveur_dpll_rec (simplifie l clauses) (l :: interpretation)
+            in
+            match branche with
+            | None ->
+                solveur_dpll_rec (simplifie (-l) clauses) (-l :: interpretation)
+            | _ -> branche
+        )
+    )
+
 (* tests *)
 (* ----------------------------------------------------------- *)
 (* let () = print_modele (solveur_dpll_rec systeme []) *)
