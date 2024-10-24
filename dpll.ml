@@ -104,42 +104,6 @@ let pur clauses =
       | 0 -> raise(Failure "pas de littéral pur") (* Si aucun littéral pur n'est trouvé *)
       | l -> l (* Renvoie le littéral pur trouvé *)
 
-(* let pur clauses =
-  let literals = flatten clauses in
-  let sort_list = sort (fun i j -> abs i - abs j) literals in
-  let rec pur_aux l is_pure list =
-    match list with
-    | [] -> if is_pure then l else raise (Failure "pas de littéral pur")
-    | hd :: tl ->
-      if is_pure then if hd = -l then pur_aux hd false tl else pur_aux l true tl
-      else if hd <> -l && hd <> l then pur_aux hd true tl
-      else pur_aux hd false tl
-in
-pur_aux 0 false sort_list *)
-
-(* let pur clauses =
-  let table = Hashtbl.create 128 in
-  (* Remplir la table avec les littéraux *)
-  let add_literal lit =
-    let abs_lit = abs lit in (* on prend la valeur absolue du littéral pour identifier les opposés (x et ¬x ont la même clé dans la table)*)
-    match Hashtbl.find_opt table abs_lit with
-    | None -> Hashtbl.add table abs_lit (lit, 1)
-    | Some (existing_lit, count) ->
-        (* Si le littéral opposé est déjà là, on le marque comme impur *)
-        if existing_lit = -lit then Hashtbl.replace table abs_lit (existing_lit, -1)(* -1 si on a trouver le litteral opposer donc marqué comme impur *)
-        else Hashtbl.replace table abs_lit (existing_lit, count + 1)
-  in
-  List.iter (List.iter add_literal) clauses;
-
-  (* Rechercher un littéral pur dans la table *)
-  let rec find_pure tbl =
-    Hashtbl.fold (fun _ (lit, count) acc ->
-      if count > 0 then Some lit else acc) tbl None
-  in
-  match find_pure table with
-  | Some pure_lit -> pure_lit
-  | None -> raise (Failure "pas de littéral pur") *)
-
 
 (* unitaire : int list list -> int
     - si `clauses' contient au moins une clause unitaire, retourne
@@ -152,30 +116,6 @@ let rec unitaire clauses =
   | [ a ] -> a (* Si une clause contient un seul littéral, on le retourne *)
   | _ -> unitaire tl) (* Sinon, on continue la recherche *)
 
-(* solveur_dpll_rec : int list list -> int list -> int list option
-let rec solveur_dpll_rec clauses interpretation =
-  (* l'ensemble vide de clauses est satisfiable *)
-  if clauses = [] then Some interpretation
-  else if (* la clause vide n'est jamais satisfiable *)
-          mem [] clauses then None
-  else
-    (* branchement *)
-    try
-      let unit = unitaire clauses in
-      solveur_dpll_rec (simplifie unit clauses) (unit :: interpretation)
-    with Not_found -> (
-      try
-        let p = pur clauses in
-        solveur_dpll_rec (simplifie p clauses) (p :: interpretation)
-      with Failure msg -> (
-        let l = hd (hd clauses) in
-        let branche =
-          solveur_dpll_rec (simplifie l clauses) (l :: interpretation)
-        in
-        match branche with
-        | None ->
-            solveur_dpll_rec (simplifie (-l) clauses) (-l :: interpretation)
-        | _ -> branche)) *)
 
 (* VERSION PLUS OPTIMISER DE solveur_dpll_rec*)
 
