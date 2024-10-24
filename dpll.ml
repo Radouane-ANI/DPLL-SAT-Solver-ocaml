@@ -51,14 +51,18 @@ let coloriage = [
    applique la simplification de l'ensemble des clauses en mettant
    le littéral l à vrai *)
 let simplifie l clauses =
+(* Fonction auxiliaire récursive qui prend un accumulateur acc et une clause fin_clause *)
   let rec aux acc fin_clause =
     match fin_clause with
-    | [] -> Some acc
-    | h :: tl ->
-        if h = l then None else if h = -l then aux acc tl else aux (h :: acc) tl
+    | [] -> Some acc  (* Si la clause est vide, on renvoie l'accumulateur *)
+    | h :: tl -> (* On analyse le premier élément de la clause *)
+        if h = l then None  (* Si on trouve le littéral l, la clause est satisfaite, on l'élimine (None) *)
+        else if h = -l then aux acc tl  (* Si on trouve -l, on l'élimine de la clause (continue) *)
+        else aux (h :: acc) tl  (* Sinon, on garde le littéral h dans l'accumulateur *)
   in
+  (* On applique la simplification sur toutes les clauses, et on inverse la liste pour garder l'ordre original *)
   rev (filter_map (aux []) clauses)
-
+    
 (* solveur_split : int list list -> int list -> int list option
    exemple d'utilisation de `simplifie' *)
 (* cette fonction ne doit pas être modifiée, sauf si vous changez 
@@ -87,13 +91,18 @@ let rec solveur_split clauses interpretation =
       ce littéral ;
     - sinon, lève une exception `Failure "pas de littéral pur"' *)
 let pur clauses =
+  (* Crée une table de hachage pour stocker les littéraux *)
   let table = Hashtbl.create 100 in
+    (* Initialise la table en ajoutant chaque littéral des clauses *)
     let init = List.iter (fun clause -> iter(fun l -> Hashtbl.replace table l true ) clause) clauses
     in init ;
+    (* Recherche d'un littéral pur en parcourant la table de hachage *)
+    (* Si on trouve à la fois l et -l, l n'est pas pur *)
+    (* Sinon, l est pur et on le renvoie, il remplace l'accumulateur*)
     match Hashtbl.fold (fun l a acc -> if acc = 0 then if Hashtbl.mem table (-l) then acc else l
     else acc) table 0 with 
-      | 0 -> raise(Failure "pas de littéral pur")
-      | l -> l
+      | 0 -> raise(Failure "pas de littéral pur") (* Si aucun littéral pur n'est trouvé *)
+      | l -> l (* Renvoie le littéral pur trouvé *)
 
 (* let pur clauses =
   let literals = flatten clauses in
@@ -138,8 +147,10 @@ pur_aux 0 false sort_list *)
     - sinon, lève une exception `Not_found' *)
 let rec unitaire clauses =
   match clauses with
-  | [] -> raise Not_found
-  | hd :: tl -> ( match hd with [ a ] -> a | _ -> unitaire tl)
+  | [] -> raise Not_found (* Aucune clause unitaire trouvée *)
+  | hd :: tl -> ( match hd with
+  | [ a ] -> a (* Si une clause contient un seul littéral, on le retourne *)
+  | _ -> unitaire tl) (* Sinon, on continue la recherche *)
 
 (* solveur_dpll_rec : int list list -> int list -> int list option
 let rec solveur_dpll_rec clauses interpretation =
@@ -168,15 +179,17 @@ let rec solveur_dpll_rec clauses interpretation =
 
 (* VERSION PLUS OPTIMISER DE solveur_dpll_rec*)
 
+(* unitaire_opt : retourne une option contenant un littéral unitaire ou None *)
 let unitaire_opt clauses =
   try Some (unitaire clauses)
-  with Not_found -> None
+  with Not_found -> None  (* Si aucun littéral unitaire n'est trouvé, renvoie None *)
 
+(* pur_opt : retourne une option contenant un littéral pur ou None *)
 let pur_opt clauses =
   try Some (pur clauses)
-  with Failure _ -> None
+  with Failure _ -> None  (* Si aucun littéral pur n'est trouvé, renvoie None *)
 
-        (* solveur_dpll_rec : int list list -> int list -> int list option *)
+(* solveur_dpll_rec : int list list -> int list -> int list option *)
 let rec solveur_dpll_rec clauses interpretation =
   (* l'ensemble vide de clauses est satisfiable *)
   if clauses = [] then Some interpretation
@@ -185,19 +198,19 @@ let rec solveur_dpll_rec clauses interpretation =
   else
     (* branchement *)
     match unitaire_opt clauses with
-    | Some unit -> 
+    | Some unit -> (* Si un littéral unitaire est trouvé, on simplifie et continue avec ce littéral *)
         solveur_dpll_rec (simplifie unit clauses) (unit :: interpretation)
     | None -> (
         match pur_opt clauses with
-        | Some p ->
+        | Some p -> (* Si un littéral pur est trouvé, on simplifie et continue avec ce littéral *)
             solveur_dpll_rec (simplifie p clauses) (p :: interpretation)
-        | None -> (
+        | None -> ( (* Sinon, on choisit un littéral arbitraire *)
             let l = List.hd (List.hd clauses) in
-            let branche =
+            let branche = (* On tente d'abord de résoudre avec l *)
               solveur_dpll_rec (simplifie l clauses) (l :: interpretation)
             in
             match branche with
-            | None ->
+            | None -> (* Si la première branche échoue, on tente avec -l *)
                 solveur_dpll_rec (simplifie (-l) clauses) (-l :: interpretation)
             | _ -> branche
         )
