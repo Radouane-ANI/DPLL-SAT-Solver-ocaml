@@ -161,7 +161,7 @@ let rec solveur_dpll_rec clauses interpretation =
 (* let () = print_modele (solveur_dpll_rec systeme []) *)
 (* let () = print_modele (solveur_dpll_rec coloriage []) *)
 
-(* let () =
+ let () =
   let clauses = Dimacs.parse Sys.argv.(1) in
   print_modele (solveur_dpll_rec clauses [])
-;; *)
+;; 
