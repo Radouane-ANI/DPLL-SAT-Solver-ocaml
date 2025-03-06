@@ -46,12 +46,12 @@ Le programme affiche :
 ## Exemple
 Avec un fichier d'entrée `exemple.cnf` :
 ```sh
-./dpll exemple.cnf
+./dpll Sat/accessibilite.cnf
 ```
 Sortie possible :
 ```
 SAT
-1 -2 3 0
+1 2 3 4 5 6 7 8 9 10 11 12 13 -14 15 0
 ```
 
 ## Dépendances
